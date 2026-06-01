@@ -170,6 +170,13 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
   const newBirthTime = updates.birthTime ?? (row.birth_time as string);
   const newGender = updates.gender ?? (row.gender as string);
 
+  console.log('[PATCH /users/me] 요청 body:', updates);
+  console.log('[PATCH /users/me] 기존값:', {
+    birthDate: row.birth_date,
+    birthTime: row.birth_time,
+    weakestElement: row.weakest_element,
+  });
+
   // 사주 정보 변경 여부 확인
   const sajuChanged =
     newBirthDate !== (row.birth_date as string) ||
@@ -226,6 +233,14 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     createdAt: row.created_at as number,
     updatedAt: now,
   };
+
+  console.log('[PATCH /users/me] 업데이트 후 user:', {
+    nickname: user.nickname,
+    birthDate: user.birthDate,
+    birthTime: user.birthTime,
+    weakestElement: user.weakestElement,
+    elements: user.elements,
+  });
 
   return c.json({ user, elements, weakestElement });
 });
