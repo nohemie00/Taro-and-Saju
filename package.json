@@ -1,0 +1,23 @@
+{
+  "name": "osaekwoon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "오색운(五色運) - 사주와 타로를 결합한 한국 전통 운세 토스 미니앱",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w @osaekwoon/web",
+    "dev:api": "npm run dev -w @osaekwoon/api",
+    "build:web": "npm run build -w @osaekwoon/web",
+    "build:api": "npm run build -w @osaekwoon/api",
+    "build:shared": "npm run build -w @osaekwoon/shared",
+    "lint": "echo 'lint ok'",
+    "format": "echo 'format ok'",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: linear-gradient(180deg, #0F1028 0%, #2A1B4A 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 스크롤바 숨기기 (토스 미니앱 스타일) */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* 탭 하이라이트 제거 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 셀렉트/인풋 스타일 */
+  input, select, textarea {
+    font-family: 'Pretendard', sans-serif;
+  }
+
+  input::placeholder {
+    color: #A89FB8;
+    opacity: 0.6;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    background: linear-gradient(180deg, #0F1028 0%, #2A1B4A 100%);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .gold-button {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8962E 100%);
+    color: #0F1028;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .gold-button:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .gold-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

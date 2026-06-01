@@ -1,0 +1,24 @@
+{
+  "name": "@osaekwoon/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "build": "wrangler deploy --dry-run --outdir=dist",
+    "deploy": "wrangler deploy",
+    "lint": "eslint src/",
+    "db:migrate:local": "wrangler d1 execute osaekwoon-db --local --file=src/db/migrations/0001_init.sql",
+    "db:migrate:prod": "wrangler d1 execute osaekwoon-db --file=src/db/migrations/0001_init.sql",
+    "db:seed:local": "wrangler d1 execute osaekwoon-db --local --file=src/db/seed.sql"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "zod": "^3.23.0",
+    "@osaekwoon/shared": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250705.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.99.0"
+  }
+}
