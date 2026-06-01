@@ -1,72 +1,91 @@
 import type { Element } from '@osaekwoon/shared';
 
-const COLOR_MAP: Record<Element, { name: string; hex: string }> = {
-  wood: { name: '청룡빛', hex: '#4A6FA5' },
-  fire: { name: '주작빛', hex: '#C84B4B' },
-  earth: { name: '황린빛', hex: '#E8B84A' },
-  metal: { name: '백호빛', hex: '#F0EDE5' },
-  water: { name: '현무빛', hex: '#2C2C3E' },
+/**
+ * 오색운 — 125가지 오늘의 컬러 시스템
+ *
+ * 5 base(오행) × 5 tone(시간대) × 5 texture(질감) = 125 조합
+ */
+
+const BASE_COLORS: Record<Element, { name: string; hue: number; sat: number }> = {
+  wood:  { name: '청룡빛', hue: 215, sat: 38 },
+  fire:  { name: '주작빛', hue: 0,   sat: 55 },
+  earth: { name: '황린빛', hue: 42,  sat: 76 },
+  metal: { name: '백호빛', hue: 45,  sat: 18 },
+  water: { name: '현무빛', hue: 235, sat: 25 },
 };
 
-const VARIANTS = ['연한 ', '깊은 ', '맑은 ', '은은한 ', ''] as const;
+const TONE_VARIANTS = [
+  { name: '새벽',   lightness: 65 },
+  { name: '아침',   lightness: 70 },
+  { name: '한낮',   lightness: 55 },
+  { name: '노을',   lightness: 50 },
+  { name: '깊은밤', lightness: 25 },
+] as const;
 
-const MISSIONS: Record<Element, string[]> = {
-  wood: [
-    '아침에 따뜻한 녹차 한 잔으로 하루를 여세요',
-    '동쪽 창가에서 5분간 햇볕을 쬐세요',
-    '초록색 물건을 가방에 넣어보세요',
-    '산책하며 나무 한 그루를 안아보세요',
-    '오늘은 채소 위주의 식사를 해보세요',
-  ],
-  fire: [
-    '오늘 점심엔 따뜻한 차 한 잔. 액운이 김과 함께 빠져나갑니다',
-    '거울 보고 한 번 환하게 웃어주세요',
-    '빨간색 양말이나 속옷을 입어보세요',
-    '오늘 하루 긍정 확언을 세 번 외쳐보세요',
-    '좋아하는 노래를 크게 틀고 기분을 올려보세요',
-  ],
-  earth: [
-    '지갑에 노란 종이를 넣어두세요',
-    '맨발로 1분간 바닥을 느껴보세요',
-    '오늘은 흙이 보이는 곳을 걸어보세요',
-    '따뜻한 미숫가루 한 잔을 마셔보세요',
-    '감사 일기를 세 줄 적어보세요',
-  ],
-  metal: [
-    '현관 앞에 굵은 소금 한 줌을 두세요',
-    '오래된 물건 하나를 비우거나 나눠주세요',
-    '은색이나 흰색 액세서리를 착용해보세요',
-    '오늘은 정리정돈으로 마음을 가볍게 해보세요',
-    '깊은 숨을 열 번 천천히 쉬어보세요',
-  ],
-  water: [
-    '오늘은 물을 평소보다 한 컵 더 마시세요',
-    '잠들기 전 노란 포스트잇에 걱정 한 줄 적고 버리기',
-    '검은색 돌멩이를 주머니에 넣어보세요',
-    '흐르는 물소리를 5분간 들어보세요',
-    '오늘 밤은 평소보다 30분 일찍 잠자리에 들어보세요',
-  ],
-};
+const TEXTURE_VARIANTS = [
+  { name: '맑은',   satMod: 15 },
+  { name: '은은한', satMod: -10 },
+  { name: '짙은',   satMod: 25 },
+  { name: '옅은',   satMod: -20 },
+  { name: '영롱한', satMod: 5 },
+] as const;
 
-function dateSeed(dateString: string): number {
-  return dateString.split('-').reduce((sum, n) => sum + parseInt(n, 10), 0);
+/**
+ * HSL → HEX 변환
+ */
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const color = l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
 }
 
+/**
+ * 오늘의 컬러 산출
+ *
+ * @param weakestElement 부족한 오행
+ * @param birthMonth 생월(1~12) → tone 결정
+ * @param dateString YYYY-MM-DD → texture 결정
+ */
 export function getDailyColor(
   weakestElement: Element,
+  birthMonth: number,
   dateString: string
-): { colorName: string; colorHex: string } {
-  const seed = dateSeed(dateString);
-  const prefix = VARIANTS[seed % VARIANTS.length];
-  const base = COLOR_MAP[weakestElement] || COLOR_MAP.earth;
-  return {
-    colorName: prefix + base.name,
-    colorHex: base.hex,
-  };
-}
+): { colorName: string; colorHex: string; tone: string; texture: string; base: Element } {
+  const base = BASE_COLORS[weakestElement] || BASE_COLORS.earth;
 
-export function getDailyMission(weakestElement: Element, dateString: string): string {
-  const pool = MISSIONS[weakestElement] || MISSIONS.earth;
-  const seed = dateSeed(dateString);
-  return pool[seed % pool.length];
+  // tone: 생월 기반 (1~12월 → 0~4 인덱스)
+  const toneIdx = (birthMonth - 1) % 5;
+  const tone = TONE_VARIANTS[toneIdx];
+
+  // texture: 날짜 시드 기반
+  const seed = dateString.split('-').reduce((s, n) => s + parseInt(n, 10), 0);
+  const textureIdx = seed % 5;
+  const texture = TEXTURE_VARIANTS[textureIdx];
+
+  // 최종 색상 계산
+  const finalSat = Math.max(5, Math.min(100, base.sat + texture.satMod));
+  const finalHex = hslToHex(base.hue, finalSat, tone.lightness);
+
+  console.log('[COLOR]', {
+    weakestElement,
+    birthMonth,
+    dateString,
+    tone: tone.name,
+    texture: texture.name,
+    hex: finalHex,
+  });
+
+  return {
+    colorName: `${tone.name} ${texture.name} ${base.name}`,
+    colorHex: finalHex,
+    tone: tone.name,
+    texture: texture.name,
+    base: weakestElement,
+  };
 }
