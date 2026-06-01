@@ -163,16 +163,30 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     return c.json({ error: '사용자를 찾을 수 없습니다', code: 'NOT_FOUND' }, 404);
   }
 
+  const userId = row.id as string;
   const updates = parsed.data;
   const newNickname = updates.nickname ?? (row.nickname as string);
   const newBirthDate = updates.birthDate ?? (row.birth_date as string);
   const newBirthTime = updates.birthTime ?? (row.birth_time as string);
   const newGender = updates.gender ?? (row.gender as string);
 
-  // 사주 정보가 변경되면 오행 재계산
+  // 사주 정보 변경 여부 확인
+  const sajuChanged =
+    newBirthDate !== (row.birth_date as string) ||
+    newBirthTime !== (row.birth_time as string);
+
+  // 오행 재계산 (사주 변경 여부와 관계없이 항상 계산하여 일관성 보장)
   const { elements, weakestElement } = calculateElements(newBirthDate, newBirthTime);
   const now = Date.now();
 
+  console.log(`[PATCH /users/me] 사주 재계산 결과: weakestElement = ${weakestElement}`, {
+    birthDate: newBirthDate,
+    birthTime: newBirthTime,
+    elements,
+    sajuChanged,
+  });
+
+  // users 테이블 업데이트
   await c.env.DB.prepare(
     `UPDATE users SET nickname = ?, birth_date = ?, birth_time = ?, gender = ?,
      element_wood = ?, element_fire = ?, element_earth = ?, element_metal = ?, element_water = ?,
@@ -186,8 +200,22 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     )
     .run();
 
+  // 중요: 오늘 날짜의 daily_fortunes 캐시 무효화
+  // 사주가 바뀌면 오행이 달라지므로 오늘의 컬러도 반드시 재산출해야 함
+  const today = new Date().toISOString().slice(0, 10);
+  const deleteResult = await c.env.DB.prepare(
+    'DELETE FROM daily_fortunes WHERE user_id = ? AND date = ?'
+  )
+    .bind(userId, today)
+    .run();
+
+  console.log(`[PATCH /users/me] 오늘(${today}) 캐시 무효화 완료`, {
+    userId,
+    rowsDeleted: deleteResult.meta.changes,
+  });
+
   const user = {
-    id: row.id as string,
+    id: userId,
     tossUserKey,
     nickname: newNickname,
     birthDate: newBirthDate,

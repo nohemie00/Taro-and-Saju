@@ -6,6 +6,6 @@ export function useDailyFortune(date?: string) {
   return useQuery<DailyFortune>({
     queryKey: ['daily-fortune', date || 'today'],
     queryFn: () => getDailyFortune(date),
-    staleTime: 1000 * 60 * 60, // 1시간
+    staleTime: 1000 * 60 * 5, // 5분 (invalidate 후 즉시 refetch 보장)
   });
 }

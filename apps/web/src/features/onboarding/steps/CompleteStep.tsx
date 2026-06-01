@@ -60,25 +60,37 @@ export function CompleteStep({ isEditMode = false }: Props) {
       }
 
       setUser(res.user);
-      const weakest = res.weakestElement as Element;
-      const color = ELEMENT_COLORS[weakest] || ELEMENT_COLORS.earth;
 
-      setResult({
-        nickname: res.user.nickname,
-        weakestElement: weakest,
-        colorHex: color.hex,
-      });
-      setLoading(false);
-
-      // 수정 모드에서는 daily-fortune 캐시 무효화 (오행이 바뀌었을 수 있으므로)
       if (isEditMode) {
-        queryClient.invalidateQueries({ queryKey: ['dailyFortune'] });
-      }
+        // [수정 2] React Query 캐시 전체 무효화
+        // useDailyFortune의 queryKey: ['daily-fortune', ...] 와 일치
+        queryClient.invalidateQueries({ queryKey: ['daily-fortune'] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+        queryClient.invalidateQueries({ queryKey: ['users'] });
 
-      // 3초 후 자동 이동
-      setTimeout(() => {
-        navigate('/home', { replace: true });
-      }, 3000);
+        // [수정 3] 수정 모드: 토스트 표시 + 500ms 후 홈으로 즉시 이동
+        setLoading(false);
+        showToast('사주 정보가 업데이트되었어요', 'success');
+        setTimeout(() => {
+          navigate('/home', { replace: true });
+        }, 500);
+      } else {
+        // 신규 등록: 컬러 오브 애니메이션 후 이동
+        const weakest = res.weakestElement as Element;
+        const color = ELEMENT_COLORS[weakest] || ELEMENT_COLORS.earth;
+
+        setResult({
+          nickname: res.user.nickname,
+          weakestElement: weakest,
+          colorHex: color.hex,
+        });
+        setLoading(false);
+
+        // 3초 후 자동 이동
+        setTimeout(() => {
+          navigate('/home', { replace: true });
+        }, 3000);
+      }
     } catch (err) {
       console.error('Submit failed:', err);
       setError(true);
@@ -134,7 +146,23 @@ export function CompleteStep({ isEditMode = false }: Props) {
     );
   }
 
-  // 성공
+  // 수정 모드에서는 이미 토스트 + 이동 처리됨 (이 화면은 잠깐 보일 수 있음)
+  if (isEditMode) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center"
+        >
+          <i className="fas fa-check-circle text-4xl text-gold mb-4 block" />
+          <p className="font-display text-xl text-ivory">수정 완료!</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // 신규 등록 성공 화면
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 pb-10">
       <motion.div
@@ -146,11 +174,11 @@ export function CompleteStep({ isEditMode = false }: Props) {
         <p className="font-display text-2xl text-ivory mb-8 leading-relaxed">
           {result?.nickname}님의
           <br />
-          {isEditMode ? '오색운이 새로워졌습니다' : '오색운이 깨어났습니다'}
+          오색운이 깨어났습니다
         </p>
       </motion.div>
 
-      {/* 컬러 오브 */}
+      {/* 첫 컬러 오브 */}
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -173,7 +201,7 @@ export function CompleteStep({ isEditMode = false }: Props) {
         onClick={() => navigate('/home', { replace: true })}
         className="gold-button px-8 py-3.5 rounded-xl text-base font-semibold"
       >
-        {isEditMode ? '홈으로 돌아가기' : '오늘의 운명을 보러 가기'}
+        오늘의 운명을 보러 가기
       </motion.button>
     </div>
   );
