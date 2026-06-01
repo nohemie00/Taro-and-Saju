@@ -16,7 +16,7 @@ module.exports = {
       name: 'osaekwoon-web',
       cwd: '/home/user/webapp/apps/web',
       script: 'npx',
-      args: 'vite --host 0.0.0.0 --port 3000',
+      args: 'vite --host 0.0.0.0 --port 5173',
       env: {
         NODE_ENV: 'development',
       },

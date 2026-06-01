@@ -16,8 +16,8 @@ app.use('*', logger());
 app.use(
   '*',
   cors({
-    origin: (origin) => origin ?? '*',
-    credentials: true,
+    origin: '*',
+    credentials: false,
     allowHeaders: ['Content-Type', 'x-toss-user-key'],
     allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   })

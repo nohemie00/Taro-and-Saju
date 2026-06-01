@@ -15,18 +15,8 @@ function getTossUserKey(): string {
 
 const tossUserKey = getTossUserKey();
 
-function getApiBaseUrl(): string {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  // 개발 환경: Vite 프록시를 통해 같은 origin의 /api로 요청
-  // Vite server.proxy 설정이 /api → localhost:8787로 프록시
-  if (typeof window !== 'undefined') {
-    return window.location.origin + '/api';
-  }
-  return 'http://localhost:3000/api';
-}
-
 export const api = ky.create({
-  prefixUrl: getApiBaseUrl(),
+  prefixUrl: '/api',
   headers: {
     'x-toss-user-key': tossUserKey,
   },

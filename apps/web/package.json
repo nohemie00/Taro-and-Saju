@@ -10,7 +10,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@osaekwoon/shared": "*",
+    "@osaekwoon/shared": "workspace:*",
     "@tanstack/react-query": "^5.62.0",
     "framer-motion": "^11.12.0",
     "ky": "^1.7.0",

@@ -14,7 +14,7 @@
   "dependencies": {
     "hono": "^4.6.0",
     "zod": "^3.23.0",
-    "@osaekwoon/shared": "*"
+    "@osaekwoon/shared": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250705.0",
