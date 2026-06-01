@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { createUser } from '@/shared/api/endpoints';
+import { createUser, updateMe } from '@/shared/api/endpoints';
 import { useUserStore } from '@/shared/stores/userStore';
 import { tossUserKey } from '@/shared/api/client';
 import { showToast } from '@/shared/components/Toast';
 import { ELEMENT_COLORS } from '@osaekwoon/shared';
 import type { Element } from '@osaekwoon/shared';
 
-export function CompleteStep() {
+interface Props {
+  isEditMode?: boolean;
+}
+
+export function CompleteStep({ isEditMode = false }: Props) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const setUser = useUserStore((s) => s.setUser);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -19,7 +25,7 @@ export function CompleteStep() {
     colorHex: string;
   } | null>(null);
 
-  const register = async () => {
+  const submitData = async () => {
     const data = window.__onboardingData;
     if (!data) {
       setError(true);
@@ -32,13 +38,26 @@ export function CompleteStep() {
     setError(false);
 
     try {
-      const res = await createUser({
-        tossUserKey,
-        nickname: data.nickname,
-        birthDate: data.birthDate,
-        birthTime: data.birthTime,
-        gender: data.gender,
-      });
+      let res: { user: any; weakestElement: string; elements: Record<string, number> };
+
+      if (isEditMode) {
+        // 수정 모드: PATCH /api/users/me
+        res = await updateMe({
+          nickname: data.nickname,
+          birthDate: data.birthDate,
+          birthTime: data.birthTime,
+          gender: data.gender,
+        });
+      } else {
+        // 신규 등록: POST /api/users
+        res = await createUser({
+          tossUserKey,
+          nickname: data.nickname,
+          birthDate: data.birthDate,
+          birthTime: data.birthTime,
+          gender: data.gender,
+        });
+      }
 
       setUser(res.user);
       const weakest = res.weakestElement as Element;
@@ -51,20 +70,30 @@ export function CompleteStep() {
       });
       setLoading(false);
 
+      // 수정 모드에서는 daily-fortune 캐시 무효화 (오행이 바뀌었을 수 있으므로)
+      if (isEditMode) {
+        queryClient.invalidateQueries({ queryKey: ['dailyFortune'] });
+      }
+
       // 3초 후 자동 이동
       setTimeout(() => {
         navigate('/home', { replace: true });
       }, 3000);
     } catch (err) {
-      console.error('Registration failed:', err);
+      console.error('Submit failed:', err);
       setError(true);
       setLoading(false);
-      showToast('등록에 실패했습니다. 다시 시도해 주세요.', 'error');
+      showToast(
+        isEditMode
+          ? '정보 수정에 실패했습니다. 다시 시도해 주세요.'
+          : '등록에 실패했습니다. 다시 시도해 주세요.',
+        'error'
+      );
     }
   };
 
   useEffect(() => {
-    register();
+    submitData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -77,7 +106,9 @@ export function CompleteStep() {
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full mb-6"
         />
-        <p className="text-lavender text-base">오색운을 깨우는 중...</p>
+        <p className="text-lavender text-base">
+          {isEditMode ? '사주 정보를 업데이트하는 중...' : '오색운을 깨우는 중...'}
+        </p>
       </div>
     );
   }
@@ -88,11 +119,13 @@ export function CompleteStep() {
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         <div className="text-center mb-8">
           <i className="fas fa-exclamation-circle text-3xl text-red-400 mb-4 block" />
-          <p className="text-ivory text-lg mb-2">등록에 실패했습니다</p>
+          <p className="text-ivory text-lg mb-2">
+            {isEditMode ? '수정에 실패했습니다' : '등록에 실패했습니다'}
+          </p>
           <p className="text-lavender text-sm">네트워크 상태를 확인해 주세요</p>
         </div>
         <button
-          onClick={register}
+          onClick={submitData}
           className="gold-button px-8 py-3 rounded-xl text-base font-semibold"
         >
           다시 시도
@@ -113,11 +146,11 @@ export function CompleteStep() {
         <p className="font-display text-2xl text-ivory mb-8 leading-relaxed">
           {result?.nickname}님의
           <br />
-          오색운이 깨어났습니다
+          {isEditMode ? '오색운이 새로워졌습니다' : '오색운이 깨어났습니다'}
         </p>
       </motion.div>
 
-      {/* 첫 컬러 오브 */}
+      {/* 컬러 오브 */}
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -140,7 +173,7 @@ export function CompleteStep() {
         onClick={() => navigate('/home', { replace: true })}
         className="gold-button px-8 py-3.5 rounded-xl text-base font-semibold"
       >
-        오늘의 운명을 보러 가기
+        {isEditMode ? '홈으로 돌아가기' : '오늘의 운명을 보러 가기'}
       </motion.button>
     </div>
   );

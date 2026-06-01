@@ -202,4 +202,32 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
   return c.json({ user, elements, weakestElement });
 });
 
+// --- DELETE /api/users/me ---
+usersRoute.delete('/me', authMiddleware, async (c) => {
+  const tossUserKey = c.get('tossUserKey');
+
+  const row = await c.env.DB.prepare(
+    'SELECT id FROM users WHERE toss_user_key = ?'
+  )
+    .bind(tossUserKey)
+    .first();
+
+  if (!row) {
+    return c.json({ error: '사용자를 찾을 수 없습니다', code: 'NOT_FOUND' }, 404);
+  }
+
+  const userId = row.id as string;
+
+  // 관련 데이터 모두 삭제 (순서 중요: FK 참조 먼저)
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM daily_fortunes WHERE user_id = ?').bind(userId),
+    c.env.DB.prepare('DELETE FROM card_readings WHERE user_id = ?').bind(userId),
+    c.env.DB.prepare('DELETE FROM mission_logs WHERE user_id = ?').bind(userId),
+    c.env.DB.prepare('DELETE FROM card_collections WHERE user_id = ?').bind(userId),
+    c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId),
+  ]);
+
+  return c.json({ success: true, message: '모든 데이터가 삭제되었습니다' });
+});
+
 export { usersRoute };

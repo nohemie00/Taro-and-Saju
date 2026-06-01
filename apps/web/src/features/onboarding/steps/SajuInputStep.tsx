@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BIRTH_BRANCHES, GENDER_OPTIONS } from '@osaekwoon/shared';
+import { useUserStore } from '@/shared/stores/userStore';
 import type { BirthBranch, Gender } from '@osaekwoon/shared';
 
 interface Props {
   onNext: () => void;
   onBack: () => void;
+  isEditMode?: boolean;
 }
 
 // 온보딩 임시 데이터를 window에 보관 (CompleteStep에서 사용)
@@ -20,11 +22,22 @@ declare global {
   }
 }
 
-export function SajuInputStep({ onNext, onBack }: Props) {
-  const [nickname, setNickname] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState<BirthBranch>('unknown');
-  const [gender, setGender] = useState<Gender | ''>('');
+export function SajuInputStep({ onNext, onBack, isEditMode = false }: Props) {
+  const existingUser = useUserStore((s) => s.user);
+
+  // 수정 모드일 때 기존 정보로 prefill
+  const [nickname, setNickname] = useState(
+    isEditMode && existingUser ? existingUser.nickname : ''
+  );
+  const [birthDate, setBirthDate] = useState(
+    isEditMode && existingUser ? existingUser.birthDate : ''
+  );
+  const [birthTime, setBirthTime] = useState<BirthBranch>(
+    isEditMode && existingUser ? existingUser.birthTime : 'unknown'
+  );
+  const [gender, setGender] = useState<Gender | ''>(
+    isEditMode && existingUser ? existingUser.gender : ''
+  );
 
   const isValid = nickname.trim().length > 0 && birthDate && gender !== '';
 
@@ -45,13 +58,15 @@ export function SajuInputStep({ onNext, onBack }: Props) {
       <div className="pt-8 pb-6">
         <button onClick={onBack} className="text-lavender mb-4 flex items-center gap-1">
           <i className="fas fa-chevron-left text-sm" />
-          <span className="text-sm">이전</span>
+          <span className="text-sm">{isEditMode ? '취소' : '이전'}</span>
         </button>
         <h2 className="font-display text-2xl text-ivory leading-tight">
-          사주 정보를 알려주세요
+          {isEditMode ? '사주 정보 수정' : '사주 정보를 알려주세요'}
         </h2>
         <p className="text-sm text-lavender mt-2">
-          정확할수록 오늘의 컬러가 더 잘 맞아요
+          {isEditMode
+            ? '변경할 정보를 수정해 주세요'
+            : '정확할수록 오늘의 컬러가 더 잘 맞아요'}
         </p>
       </div>
 
@@ -122,7 +137,7 @@ export function SajuInputStep({ onNext, onBack }: Props) {
         </div>
       </div>
 
-      {/* 다음 버튼 */}
+      {/* 다음/저장 버튼 */}
       <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -131,7 +146,7 @@ export function SajuInputStep({ onNext, onBack }: Props) {
         disabled={!isValid}
         className="gold-button w-full py-4 rounded-xl text-base font-semibold mt-6"
       >
-        다음
+        {isEditMode ? '저장하기' : '다음'}
       </motion.button>
     </div>
   );

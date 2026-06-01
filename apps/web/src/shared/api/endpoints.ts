@@ -23,6 +23,10 @@ export async function updateMe(data: UpdateUserRequest): Promise<{
   return api.patch('users/me', { json: data }).json();
 }
 
+export async function deleteMe(): Promise<{ success: boolean; message: string }> {
+  return api.delete('users/me').json();
+}
+
 // --- Daily Fortune ---
 
 export async function getDailyFortune(date?: string): Promise<DailyFortune> {
