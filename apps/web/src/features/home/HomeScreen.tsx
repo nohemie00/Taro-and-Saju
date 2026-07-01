@@ -7,6 +7,7 @@ import { BottomSheet } from '@/shared/components/BottomSheet';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import { ColorOrb } from './components/ColorOrb';
 import { DailyMissionCard } from './components/DailyMissionCard';
+import { TarotSummaryCard } from './components/TarotSummaryCard';
 import { BottomTabBar } from './components/BottomTabBar';
 import { useDailyFortune } from './hooks/useDailyFortune';
 import { useUserStore } from '@/shared/stores/userStore';
@@ -146,6 +147,11 @@ export function HomeScreen() {
               {/* 미션 카드 */}
               <div className="w-full mt-10">
                 <DailyMissionCard missionText={fortune.missionText} />
+              </div>
+
+              {/* 타로 요약 카드 */}
+              <div className="w-full mt-4">
+                <TarotSummaryCard />
               </div>
             </>
           ) : null}

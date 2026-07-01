@@ -33,3 +33,37 @@ export async function getDailyFortune(date?: string): Promise<DailyFortune> {
   const searchParams = date ? { date } : {};
   return api.get('daily-fortune', { searchParams }).json();
 }
+
+// --- Tarot ---
+
+export async function getTarotStatus(): Promise<{
+  hasReadToday: boolean;
+  todayReading: {
+    date: string;
+    cards: any[];
+    readingText: string;
+    createdAt: number;
+  } | null;
+}> {
+  return api.get('tarot/status').json();
+}
+
+export async function drawTarotCards(): Promise<{
+  date: string;
+  cards: any[];
+  readingMessage: string;
+  nickname: string;
+}> {
+  return api.post('tarot/draw').json();
+}
+
+export async function getTarotHistory(): Promise<{
+  readings: Array<{
+    date: string;
+    cards: any[];
+    readingText: string;
+    createdAt: number;
+  }>;
+}> {
+  return api.get('tarot/history').json();
+}

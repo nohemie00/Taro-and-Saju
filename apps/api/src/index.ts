@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { usersRoute } from './routes/users';
 import { dailyFortuneRoute } from './routes/dailyFortune';
+import { tarotRoute } from './routes/tarot';
 
 type Bindings = {
   DB: D1Database;
@@ -25,12 +26,13 @@ app.use(
 
 // --- Health Check ---
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', version: '1.0.0', phase: 1 });
+  return c.json({ status: 'ok', version: '2.0.0', phase: 2 });
 });
 
 // --- Routes ---
 app.route('/api/users', usersRoute);
 app.route('/api/daily-fortune', dailyFortuneRoute);
+app.route('/api/tarot', tarotRoute);
 
 // --- 404 Fallback ---
 app.notFound((c) => {
