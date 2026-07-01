@@ -57,6 +57,61 @@ export async function drawTarotCards(): Promise<{
   return api.post('tarot/draw').json();
 }
 
+// --- Missions ---
+
+export interface MissionItem {
+  mission_id: string;
+  category: string;
+  element: string;
+  text: string;
+  duration_min: number;
+  completed: boolean;
+  completedAt: number | null;
+}
+
+export async function getMissionsToday(): Promise<{
+  date: string;
+  missions: MissionItem[];
+  completedCount: number;
+  totalCount: number;
+}> {
+  return api.get('missions/today').json();
+}
+
+export async function completeMission(missionId: string): Promise<{
+  success: boolean;
+  missionId: string;
+  completedAt: number;
+}> {
+  return api.post('missions/complete', { json: { missionId } }).json();
+}
+
+export async function uncompleteMission(missionId: string): Promise<{
+  success: boolean;
+  missionId: string;
+}> {
+  return api.post('missions/uncomplete', { json: { missionId } }).json();
+}
+
+export interface HistoryDay {
+  date: string;
+  totalCount: number;
+  completedCount: number;
+  missions: Array<{
+    mission_id: string;
+    text: string;
+    element: string;
+    category: string;
+    completed: boolean;
+  }>;
+}
+
+export async function getMissionHistory(): Promise<{
+  history: HistoryDay[];
+}> {
+  return api.get('missions/history').json();
+}
+
 export async function getTarotHistory(): Promise<{
   readings: Array<{
     date: string;

@@ -3,6 +3,7 @@ import { SplashScreen } from '@/features/splash/SplashScreen';
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
 import { HomeScreen } from '@/features/home/HomeScreen';
 import { TarotScreen } from '@/features/tarot/TarotScreen';
+import { MissionScreen } from '@/features/mission/MissionScreen';
 import { Toast } from '@/shared/components/Toast';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/home" element={<HomeScreen />} />
         <Route path="/tarot" element={<TarotScreen />} />
+        <Route path="/mission" element={<MissionScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

@@ -4,6 +4,7 @@ import { logger } from 'hono/logger';
 import { usersRoute } from './routes/users';
 import { dailyFortuneRoute } from './routes/dailyFortune';
 import { tarotRoute } from './routes/tarot';
+import { missionsRoute } from './routes/missions';
 
 type Bindings = {
   DB: D1Database;
@@ -33,6 +34,7 @@ app.get('/api/health', (c) => {
 app.route('/api/users', usersRoute);
 app.route('/api/daily-fortune', dailyFortuneRoute);
 app.route('/api/tarot', tarotRoute);
+app.route('/api/missions', missionsRoute);
 
 // --- 404 Fallback ---
 app.notFound((c) => {

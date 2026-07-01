@@ -4,7 +4,7 @@ import { showToast } from '@/shared/components/Toast';
 const TABS = [
   { id: 'home', label: '홈', icon: 'fas fa-home', path: '/home' },
   { id: 'tarot', label: '타로', icon: 'fas fa-moon', path: '/tarot' },
-  { id: 'mission', label: '미션', icon: 'fas fa-star', path: null },
+  { id: 'mission', label: '미션', icon: 'fas fa-star', path: '/mission' },
   { id: 'diary', label: '다이어리', icon: 'fas fa-book', path: null },
   { id: 'scan', label: '스캔', icon: 'fas fa-qrcode', path: null },
 ];
