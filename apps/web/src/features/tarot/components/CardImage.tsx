@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { getCardImageUrl } from '@/data/cardImages';
 
 interface CardData {
   card_id: string;
@@ -19,20 +21,19 @@ interface Props {
 }
 
 const SIZES = {
-  sm: { w: 70, h: 98, hanjaSize: 12, nameSize: 9, iconSize: 18 },
-  md: { w: 140, h: 196, hanjaSize: 18, nameSize: 14, iconSize: 28 },
-  lg: { w: 210, h: 294, hanjaSize: 24, nameSize: 16, iconSize: 36 },
+  sm: { w: 70, h: 98, hanjaSize: 12, nameSize: 9, iconSize: 18, radius: 10 },
+  md: { w: 140, h: 196, hanjaSize: 18, nameSize: 14, iconSize: 28, radius: 14 },
+  lg: { w: 210, h: 294, hanjaSize: 24, nameSize: 16, iconSize: 36, radius: 16 },
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
-  major: '\u2726',  // ✦
+  major: '\u2726',   // ✦
   element: '\u25CB', // ○
   zodiac: '\u2606',  // ☆
-  protection: '\u5352', // 卒 (using a CJK char as visual proxy)
-  luck: '\u2605',   // ★
+  protection: '\u5352', // 卒
+  luck: '\u2605',    // ★
 };
 
-// zodiac animal emojis
 const ZODIAC_EMOJIS: Record<string, string> = {
   rat: '\uD83D\uDC2D', mouse: '\uD83D\uDC2D',
   ox: '\uD83D\uDC2E', tiger: '\uD83D\uDC2F',
@@ -46,9 +47,11 @@ const ZODIAC_EMOJIS: Record<string, string> = {
 export function CardImage({ card, orientation = 'upright', size = 'md', onClick }: Props) {
   const s = SIZES[size];
   const isReversed = orientation === 'reversed';
-  const icon = (card as any).zodiac
-    ? ZODIAC_EMOJIS[(card as any).zodiac] || CATEGORY_ICONS.zodiac
-    : CATEGORY_ICONS[card.category] || '\u25CB';
+  const imageUrl = getCardImageUrl(card.card_id);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const showImage = imageUrl && !imgError;
 
   return (
     <motion.div
@@ -66,8 +69,9 @@ export function CardImage({ card, orientation = 'upright', size = 'md', onClick 
       {/* Holographic border */}
       {card.is_holographic && (
         <div
-          className="absolute -inset-[2px] rounded-[14px] opacity-70"
+          className="absolute -inset-[2px] opacity-70"
           style={{
+            borderRadius: s.radius + 2,
             background: 'linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000)',
             backgroundSize: '400% 400%',
             animation: 'holoShift 3s linear infinite',
@@ -77,39 +81,94 @@ export function CardImage({ card, orientation = 'upright', size = 'md', onClick 
 
       {/* Card body */}
       <div
-        className="relative w-full h-full rounded-xl overflow-hidden flex flex-col items-center justify-between p-2"
+        className="relative w-full h-full overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${card.color_hex} 0%, ${card.color_hex}CC 100%)`,
+          borderRadius: s.radius,
           boxShadow: card.category === 'major'
             ? `0 0 20px ${card.color_hex}66`
             : '0 2px 8px rgba(0,0,0,0.3)',
         }}
       >
-        {/* Hanja name */}
-        <span
-          className="font-numeric text-center leading-tight text-white/90"
-          style={{ fontSize: s.hanjaSize }}
-        >
-          {card.name_hanja}
-        </span>
+        {/* === Actual Image Layer === */}
+        {showImage && (
+          <>
+            <img
+              src={imageUrl}
+              alt={card.name_kr}
+              loading="lazy"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+              style={{ opacity: imgLoaded ? 1 : 0 }}
+            />
+            {/* Subtle name overlay at bottom for readability */}
+            {imgLoaded && size !== 'sm' && (
+              <div
+                className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-1.5 pt-4"
+                style={{
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.5))',
+                }}
+              >
+                <span
+                  className="font-display text-white/90 text-center leading-tight drop-shadow-md"
+                  style={{ fontSize: s.nameSize - 2 }}
+                >
+                  {card.name_kr}
+                </span>
+              </div>
+            )}
+          </>
+        )}
 
-        {/* Icon */}
-        <span
-          className="block text-center"
-          style={{ fontSize: s.iconSize, lineHeight: 1.2 }}
-        >
-          {icon}
-        </span>
-
-        {/* Korean name */}
-        <span
-          className="font-display text-center leading-tight text-white"
-          style={{ fontSize: s.nameSize }}
-        >
-          {card.name_kr}
-        </span>
+        {/* === Fallback Color Card (shown while loading or on error) === */}
+        {(!showImage || !imgLoaded) && (
+          <FallbackCard card={card} size={size} s={s} />
+        )}
       </div>
     </motion.div>
+  );
+}
+
+/** Fallback: the original color-based card design */
+function FallbackCard({
+  card,
+  size,
+  s,
+}: {
+  card: CardData;
+  size: string;
+  s: (typeof SIZES)['md'];
+}) {
+  const icon = (card as any).zodiac
+    ? ZODIAC_EMOJIS[(card as any).zodiac] || CATEGORY_ICONS.zodiac
+    : CATEGORY_ICONS[card.category] || '\u25CB';
+
+  return (
+    <div
+      className="w-full h-full flex flex-col items-center justify-between p-2"
+      style={{
+        background: `linear-gradient(135deg, ${card.color_hex} 0%, ${card.color_hex}CC 100%)`,
+      }}
+    >
+      <span
+        className="font-numeric text-center leading-tight text-white/90"
+        style={{ fontSize: s.hanjaSize }}
+      >
+        {card.name_hanja}
+      </span>
+      <span
+        className="block text-center"
+        style={{ fontSize: s.iconSize, lineHeight: 1.2 }}
+      >
+        {icon}
+      </span>
+      <span
+        className="font-display text-center leading-tight text-white"
+        style={{ fontSize: s.nameSize }}
+      >
+        {card.name_kr}
+      </span>
+    </div>
   );
 }
 
@@ -123,10 +182,11 @@ export function CardBack({ size = 'md', selected = false }: { size?: 'sm' | 'md'
       style={{ width: s.w, height: s.h }}
     >
       <div
-        className={`w-full h-full rounded-xl overflow-hidden flex items-center justify-center border-2 transition-all duration-300 ${
+        className={`w-full h-full overflow-hidden flex items-center justify-center border-2 transition-all duration-300 ${
           selected ? 'border-gold shadow-[0_0_20px_rgba(212,175,55,0.5)]' : 'border-gold/20'
         }`}
         style={{
+          borderRadius: s.radius,
           background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #1A1A2E 100%)',
         }}
       >
