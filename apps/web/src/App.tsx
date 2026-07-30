@@ -5,6 +5,7 @@ import { HomeScreen } from '@/features/home/HomeScreen';
 import { TarotScreen } from '@/features/tarot/TarotScreen';
 import { TarotHistoryScreen } from '@/features/tarot/TarotHistoryScreen';
 import { MissionScreen } from '@/features/mission/MissionScreen';
+import { ProfileScreen } from '@/features/profile/ProfileScreen';
 import { Toast } from '@/shared/components/Toast';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/tarot" element={<TarotScreen />} />
         <Route path="/tarot/history" element={<TarotHistoryScreen />} />
         <Route path="/mission" element={<MissionScreen />} />
+        <Route path="/profile" element={<ProfileScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
