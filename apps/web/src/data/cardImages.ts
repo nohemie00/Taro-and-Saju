@@ -84,9 +84,19 @@ export const CARD_IMAGE_URLS: Record<string, string> = {
 };
 
 /**
+ * 카드 뒷면 이미지 URL
+ * 오색운 브랜드 디자인 — midnight navy + gold, 五 중앙 모티프
+ */
+export const CARD_BACK_IMAGE_URL = 'https://www.genspark.ai/api/files/s/aootXk1o?cache_control=3600';
+
+/**
  * card_id로 이미지 URL을 가져옵니다.
  * 없으면 null을 반환하여 fallback UI를 표시합니다.
  */
 export function getCardImageUrl(cardId: string): string | null {
   return CARD_IMAGE_URLS[cardId] ?? null;
+}
+
+export function getCardBackImageUrl(): string {
+  return CARD_BACK_IMAGE_URL;
 }

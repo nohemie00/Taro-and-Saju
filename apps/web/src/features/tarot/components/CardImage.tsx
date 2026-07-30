@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { getCardImageUrl } from '@/data/cardImages';
+import { getCardImageUrl, getCardBackImageUrl } from '@/data/cardImages';
 
 interface CardData {
   card_id: string;
@@ -175,6 +175,9 @@ function FallbackCard({
 /** Card back design */
 export function CardBack({ size = 'md', selected = false }: { size?: 'sm' | 'md' | 'lg'; selected?: boolean }) {
   const s = SIZES[size];
+  const backUrl = getCardBackImageUrl();
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div
@@ -182,25 +185,43 @@ export function CardBack({ size = 'md', selected = false }: { size?: 'sm' | 'md'
       style={{ width: s.w, height: s.h }}
     >
       <div
-        className={`w-full h-full overflow-hidden flex items-center justify-center border-2 transition-all duration-300 ${
-          selected ? 'border-gold shadow-[0_0_20px_rgba(212,175,55,0.5)]' : 'border-gold/20'
+        className={`w-full h-full overflow-hidden transition-all duration-300 ${
+          selected ? 'border-2 border-gold shadow-[0_0_20px_rgba(212,175,55,0.5)]' : 'border border-gold/20'
         }`}
         style={{
           borderRadius: s.radius,
           background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #1A1A2E 100%)',
         }}
       >
-        {/* Gold pattern lines */}
-        <div className="absolute inset-2 border border-gold/15 rounded-lg" />
-        <div className="absolute inset-4 border border-gold/10 rounded-md" />
+        {/* Actual back image */}
+        {!imgError && (
+          <img
+            src={backUrl}
+            alt="오색운 카드"
+            loading="lazy"
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+            style={{ opacity: imgLoaded ? 1 : 0 }}
+          />
+        )}
 
-        {/* Center character */}
-        <span
-          className="font-display text-gold/60 select-none"
-          style={{ fontSize: s.iconSize * 1.5 }}
-        >
-          五
-        </span>
+        {/* Fallback (shown while loading or on error) */}
+        {(!imgLoaded || imgError) && (
+          <div className="w-full h-full flex items-center justify-center">
+            {/* Gold pattern lines */}
+            <div className="absolute inset-2 border border-gold/15 rounded-lg" />
+            <div className="absolute inset-4 border border-gold/10 rounded-md" />
+
+            {/* Center character */}
+            <span
+              className="font-display text-gold/60 select-none"
+              style={{ fontSize: s.iconSize * 1.5 }}
+            >
+              五
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
