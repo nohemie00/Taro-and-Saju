@@ -10,8 +10,8 @@ export const CARD_IMAGE_URLS: Record<string, string> = {
   // ═══════════════════════════════════════
   // Major 10장 — 사신 + 황린
   // ═══════════════════════════════════════
-  M01: 'https://www.genspark.ai/api/files/s/m1CGIIIS?cache_control=3600', // 청룡지양
-  M02: 'https://www.genspark.ai/api/files/s/KOOs89aS?cache_control=3600', // 청룡지음
+  M01: 'https://www.genspark.ai/api/files/s/TMXdPiSH?cache_control=3600', // 청룡지양
+  M02: 'https://www.genspark.ai/api/files/s/BSoomjcZ?cache_control=3600', // 청룡지음
   M03: 'https://www.genspark.ai/api/files/s/pkSuiGC8?cache_control=3600', // 주작지양
   M04: 'https://www.genspark.ai/api/files/s/C9yoKIDy?cache_control=3600', // 주작지음
   M05: 'https://www.genspark.ai/api/files/s/oJqb28jF?cache_control=3600', // 백호지양
