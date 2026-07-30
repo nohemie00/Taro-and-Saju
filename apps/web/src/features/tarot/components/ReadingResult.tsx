@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardImage } from './CardImage';
-import { showToast } from '@/shared/components/Toast';
+import { ShareModal } from '@/shared/components/ShareModal';
+import { generateTarotShareImage } from '@/shared/utils/shareImage';
+import { getCardImageUrl } from '@/data/cardImages';
 
 interface DrawnCard {
   card_id: string;
@@ -29,16 +31,35 @@ interface Props {
 
 export function ReadingResult({ cards, readingMessage, nickname, date }: Props) {
   const [selectedCard, setSelectedCard] = useState<DrawnCard | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   // Extract one keyword from each card
   const luckyKeywords = cards.map((c) => c.keywords[0]);
 
+  const handleGenerateShareImage = useCallback(async () => {
+    return generateTarotShareImage({
+      nickname,
+      date,
+      cards: cards.map((c) => ({
+        card_id: c.card_id,
+        name_kr: c.name_kr,
+        name_hanja: c.name_hanja,
+        orientation: c.orientation,
+        positionLabel: c.positionLabel,
+        keywords: c.keywords,
+        color_hex: c.color_hex,
+      })),
+      readingMessage,
+      cardImageUrls: cards.map((c) => getCardImageUrl(c.card_id)),
+    });
+  }, [cards, readingMessage, nickname, date]);
+
   const handleShare = () => {
-    showToast('공유 기능 준비 중이에요', 'info');
+    setShowShare(true);
   };
 
   const handleDeepReading = () => {
-    showToast('심화 리딩은 준비 중이에요', 'info');
+    // TODO: 심화 리딩 구현 예정
   };
 
   return (
@@ -157,6 +178,14 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
           />
         )}
       </AnimatePresence>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        generateImage={handleGenerateShareImage}
+        title="타로 결과 공유"
+      />
     </div>
   );
 }

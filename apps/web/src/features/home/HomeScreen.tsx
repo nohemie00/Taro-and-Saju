@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { GradientBackground } from '@/shared/components/GradientBackground';
 import { BottomSheet } from '@/shared/components/BottomSheet';
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
+import { ShareModal } from '@/shared/components/ShareModal';
 import { ColorOrb } from './components/ColorOrb';
 import { DailyMissionCard } from './components/DailyMissionCard';
 import { TarotSummaryCard } from './components/TarotSummaryCard';
@@ -12,6 +13,7 @@ import { BottomTabBar } from './components/BottomTabBar';
 import { useDailyFortune } from './hooks/useDailyFortune';
 import { useUserStore } from '@/shared/stores/userStore';
 import { showToast } from '@/shared/components/Toast';
+import { generateColorShareImage } from '@/shared/utils/shareImage';
 import { getMe, deleteMe } from '@/shared/api/endpoints';
 
 function formatKoreanDate(dateStr?: string): string {
@@ -34,6 +36,7 @@ export function HomeScreen() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [showVersion, setShowVersion] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   // 앱 진입 시 서버에서 사용자 동기화
   useEffect(() => {
@@ -84,8 +87,22 @@ export function HomeScreen() {
   }, []);
 
   const handleShare = () => {
-    showToast('공유 기능 준비 중', 'info');
+    if (!fortune) {
+      showToast('오늘의 색을 먼저 불러와 주세요', 'info');
+      return;
+    }
+    setShowShare(true);
   };
+
+  const handleGenerateColorImage = useCallback(async () => {
+    return generateColorShareImage({
+      nickname: user?.nickname || '',
+      date: formatKoreanDate(fortune?.date),
+      colorName: fortune?.colorName || '',
+      colorHex: fortune?.colorHex || '#D4AF37',
+      missionText: fortune?.missionText || '',
+    });
+  }, [user, fortune]);
 
   if (!user) {
     return (
@@ -244,6 +261,14 @@ export function HomeScreen() {
         description="五色運 v1.0.0&#10;사주와 타로로 보는 오늘의 색"
         confirmText="확인"
         cancelText="닫기"
+      />
+
+      {/* ---- 공유 모달 ---- */}
+      <ShareModal
+        isOpen={showShare}
+        onClose={() => setShowShare(false)}
+        generateImage={handleGenerateColorImage}
+        title="오늘의 색 공유"
       />
     </GradientBackground>
   );
