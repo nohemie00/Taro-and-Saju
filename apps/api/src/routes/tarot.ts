@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { drawThreeCards, generateReadingMessage } from '../utils/cardDraw';
+import { generateDeepReading } from '../utils/deepReading';
 // id is AUTOINCREMENT — no UUID needed for card_readings
 import type { Element } from '@osaekwoon/shared';
 
@@ -155,6 +156,44 @@ tarotRoute.get('/history', authMiddleware, async (c) => {
       readingText: r.reading_text as string,
       createdAt: r.created_at as number,
     })),
+  });
+});
+
+// --- POST /api/tarot/deep-reading --- 심화 리딩 (오행 분석 + 시너지)
+tarotRoute.post('/deep-reading', authMiddleware, async (c) => {
+  const tossUserKey = c.get('tossUserKey');
+
+  const user = await c.env.DB.prepare(
+    'SELECT * FROM users WHERE toss_user_key = ?'
+  )
+    .bind(tossUserKey)
+    .first();
+
+  if (!user) {
+    return c.json({ error: '사용자를 찾을 수 없습니다', code: 'NOT_FOUND' }, 404);
+  }
+
+  const today = getTodayString();
+  const todayReading = await c.env.DB.prepare(
+    'SELECT * FROM card_readings WHERE user_id = ? AND date = ?'
+  )
+    .bind(user.id as string, today)
+    .first();
+
+  if (!todayReading) {
+    return c.json(
+      { error: '오늘의 리딩이 없습니다. 먼저 카드를 뽑아주세요.', code: 'NO_READING' },
+      400
+    );
+  }
+
+  const cards = JSON.parse(todayReading.cards_json as string);
+  const deepReading = generateDeepReading(cards);
+
+  return c.json({
+    date: today,
+    cards,
+    deepReading,
   });
 });
 

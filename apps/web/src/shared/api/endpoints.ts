@@ -122,3 +122,41 @@ export async function getTarotHistory(): Promise<{
 }> {
   return api.get('tarot/history').json();
 }
+
+// --- Deep Reading ---
+
+export interface ElementRelation {
+  type: 'sangsaeng' | 'sanggeuk' | 'same' | 'neutral';
+  from: string;
+  to: string;
+  description: string;
+}
+
+export interface DeepReadingResult {
+  summary: string;
+  elementAnalysis: {
+    relations: ElementRelation[];
+    overallHarmony: 'very_good' | 'good' | 'neutral' | 'tension' | 'conflict';
+    harmonyDescription: string;
+  };
+  positionReadings: Array<{
+    position: string;
+    positionLabel: string;
+    cardName: string;
+    deepMeaning: string;
+  }>;
+  synergy: {
+    pattern: string;
+    description: string;
+  };
+  actionAdvice: string[];
+  caution: string | null;
+}
+
+export async function getDeepReading(): Promise<{
+  date: string;
+  cards: any[];
+  deepReading: DeepReadingResult;
+}> {
+  return api.post('tarot/deep-reading').json();
+}

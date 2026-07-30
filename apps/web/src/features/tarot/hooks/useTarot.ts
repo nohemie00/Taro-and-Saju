@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTarotStatus, drawTarotCards, getTarotHistory } from '@/shared/api/endpoints';
+import { getTarotStatus, drawTarotCards, getTarotHistory, getDeepReading } from '@/shared/api/endpoints';
 
 export function useTarotStatus() {
   return useQuery({
@@ -24,5 +24,11 @@ export function useTarotHistory() {
   return useQuery({
     queryKey: ['tarot', 'history'],
     queryFn: getTarotHistory,
+  });
+}
+
+export function useDeepReading() {
+  return useMutation({
+    mutationFn: getDeepReading,
   });
 }

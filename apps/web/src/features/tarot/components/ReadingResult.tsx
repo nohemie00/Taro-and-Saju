@@ -1,9 +1,13 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardImage } from './CardImage';
+import { DeepReadingModal } from './DeepReadingModal';
 import { ShareModal } from '@/shared/components/ShareModal';
 import { generateTarotShareImage } from '@/shared/utils/shareImage';
 import { getCardImageUrl } from '@/data/cardImages';
+import { useDeepReading } from '../hooks/useTarot';
+import type { DeepReadingResult } from '@/shared/api/endpoints';
 
 interface DrawnCard {
   card_id: string;
@@ -30,8 +34,13 @@ interface Props {
 }
 
 export function ReadingResult({ cards, readingMessage, nickname, date }: Props) {
+  const navigate = useNavigate();
   const [selectedCard, setSelectedCard] = useState<DrawnCard | null>(null);
   const [showShare, setShowShare] = useState(false);
+  const [showDeepReading, setShowDeepReading] = useState(false);
+  const [deepReadingData, setDeepReadingData] = useState<DeepReadingResult | null>(null);
+  const [deepReadingError, setDeepReadingError] = useState<string | null>(null);
+  const deepReadingMutation = useDeepReading();
 
   // Extract one keyword from each card
   const luckyKeywords = cards.map((c) => c.keywords[0]);
@@ -58,9 +67,19 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
     setShowShare(true);
   };
 
-  const handleDeepReading = () => {
-    // TODO: 심화 리딩 구현 예정
-  };
+  const handleDeepReading = useCallback(async () => {
+    setShowDeepReading(true);
+    setDeepReadingError(null);
+    try {
+      const result = await deepReadingMutation.mutateAsync();
+      setDeepReadingData(result.deepReading);
+    } catch (err: any) {
+      const message = err?.response
+        ? (await err.response.json().catch(() => ({}))).error || '심화 리딩을 불러오지 못했어요'
+        : '네트워크 오류가 발생했어요';
+      setDeepReadingError(message);
+    }
+  }, [deepReadingMutation]);
 
   return (
     <div className="flex flex-col items-center gap-6 px-4 pb-8">
@@ -164,10 +183,19 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
         </button>
       </div>
 
-      {/* Footer note */}
-      <p className="text-xs text-lavender/40 text-center">
-        타로는 하루 한 번만 뽑을 수 있어요. 내일 다시 만나요
-      </p>
+      {/* Footer note + History link */}
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-xs text-lavender/40 text-center">
+          타로는 하루 한 번만 뽑을 수 있어요. 내일 다시 만나요
+        </p>
+        <button
+          onClick={() => navigate('/tarot/history')}
+          className="text-xs text-gold/60 hover:text-gold transition-colors flex items-center gap-1"
+        >
+          <i className="fas fa-calendar-alt text-[10px]" />
+          지난 리딩 보기
+        </button>
+      </div>
 
       {/* Card Detail Modal */}
       <AnimatePresence>
@@ -185,6 +213,15 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
         onClose={() => setShowShare(false)}
         generateImage={handleGenerateShareImage}
         title="타로 결과 공유"
+      />
+
+      {/* Deep Reading Modal */}
+      <DeepReadingModal
+        isOpen={showDeepReading}
+        onClose={() => setShowDeepReading(false)}
+        deepReading={deepReadingData}
+        isLoading={deepReadingMutation.isPending}
+        error={deepReadingError}
       />
     </div>
   );
