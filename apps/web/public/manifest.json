@@ -1,0 +1,24 @@
+{
+  "name": "오색운 — 五色運",
+  "short_name": "오색운",
+  "description": "사주와 타로로 보는 오늘의 색 · 오행 기반 운세 미니앱",
+  "start_url": "/home",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F1028",
+  "theme_color": "#0F1028",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -7,9 +7,11 @@ import { TarotHistoryScreen } from '@/features/tarot/TarotHistoryScreen';
 import { MissionScreen } from '@/features/mission/MissionScreen';
 import { ProfileScreen } from '@/features/profile/ProfileScreen';
 import { Toast } from '@/shared/components/Toast';
+import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <div className="min-h-screen min-h-[100dvh] w-full max-w-app mx-auto relative">
       <Toast />
       <Routes>
@@ -23,5 +25,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
+    </ErrorBoundary>
   );
 }

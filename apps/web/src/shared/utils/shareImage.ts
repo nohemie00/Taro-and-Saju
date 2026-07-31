@@ -36,7 +36,10 @@ function drawRoundRect(
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // 외부 URL만 crossOrigin 설정 — 로컬 경로(/)는 same-origin이므로 불필요
+    // crossOrigin을 설정하면 서버가 CORS 헤더를 주지 않을 때 Canvas가 tainted됨
+    const isExternal = /^https?:\/\//.test(src);
+    if (isExternal) img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error(`Image load failed: ${src}`));
     img.src = src;
