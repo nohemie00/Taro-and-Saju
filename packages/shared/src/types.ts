@@ -16,6 +16,7 @@ export type BirthBranch =
   | 'unknown';
 
 export type Gender = 'female' | 'male' | 'none';
+export type UserTier = 'free' | 'premium';
 
 export interface User {
   id: string;
@@ -26,9 +27,26 @@ export interface User {
   gender: Gender;
   elements: Record<Element, number>;
   weakestElement: Element;
+  tier: UserTier;
+  premiumExpiresAt: number | null;
   createdAt: number;
   updatedAt: number;
 }
+
+// ─── 프리미엄 티어 ───
+
+export const TIER_LIMITS = {
+  free: {
+    tarotHistoryDays: 3,
+    missionHistoryDays: 3,
+    deepReadingEnabled: false,
+  },
+  premium: {
+    tarotHistoryDays: 30,
+    missionHistoryDays: 7,
+    deepReadingEnabled: true,
+  },
+} as const;
 
 export interface DailyFortune {
   date: string;

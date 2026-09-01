@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMissionHistory } from '../hooks/useMission';
+import { usePremium } from '@/shared/hooks/usePremium';
+import { PremiumModal } from '@/shared/components/PremiumModal';
 import type { HistoryDay } from '@/shared/api/endpoints';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
@@ -21,13 +23,28 @@ function formatShortDate(dateStr: string): { dayNum: string; dayName: string; is
 
 export function MissionHistory() {
   const { data, isLoading } = useMissionHistory();
+  const { isPremium } = usePremium();
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   if (isLoading || !data) return null;
 
   return (
     <div className="w-full">
-      <h3 className="text-xs text-lavender/50 font-medium mb-3 px-1">최근 7일</h3>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h3 className="text-xs text-lavender/50 font-medium">
+          최근 {data.history.length}일
+        </h3>
+        {!isPremium && (
+          <button
+            onClick={() => setShowPremiumModal(true)}
+            className="text-[10px] text-gold/60 flex items-center gap-1"
+          >
+            <i className="fas fa-crown text-[8px]" />
+            7일 보기
+          </button>
+        )}
+      </div>
 
       {/* 주간 달력 */}
       <div className="flex items-end justify-between gap-1 mb-4">
@@ -101,6 +118,13 @@ export function MissionHistory() {
           <ExpandedDay day={data.history.find((d) => d.date === expandedDate)!} />
         )}
       </AnimatePresence>
+
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        feature="mission_history"
+      />
     </div>
   );
 }

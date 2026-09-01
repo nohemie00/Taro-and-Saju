@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GradientBackground } from '@/shared/components/GradientBackground';
+import { PremiumModal } from '@/shared/components/PremiumModal';
 import { BottomTabBar } from '@/features/home/components/BottomTabBar';
 import { useUserStore } from '@/shared/stores/userStore';
+import { usePremium } from '@/shared/hooks/usePremium';
 import { useTarotHistory } from '@/features/tarot/hooks/useTarot';
 import { useMissionHistory } from '@/features/mission/hooks/useMission';
 import type { Element, HistoryCard } from '@osaekwoon/shared';
@@ -29,6 +32,8 @@ const ELEMENT_ORDER: Element[] = ['wood', 'fire', 'earth', 'metal', 'water'];
 export function ProfileScreen() {
   const navigate = useNavigate();
   const { user } = useUserStore();
+  const { isPremium, daysRemaining } = usePremium();
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { data: tarotHistory } = useTarotHistory();
   const { data: missionHistory } = useMissionHistory();
 
@@ -88,7 +93,15 @@ export function ProfileScreen() {
                 {user.nickname.charAt(0)}
               </div>
               <div className="flex-1">
-                <h2 className="text-base font-display text-ivory">{user.nickname}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-display text-ivory">{user.nickname}</h2>
+                  {isPremium && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-gold/20 to-gold/10 border border-gold/30">
+                      <i className="fas fa-crown text-[8px] text-gold" />
+                      <span className="text-[9px] font-bold text-gold">PREMIUM</span>
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-lavender/60 mt-0.5">
                   {birthLabel}
                   {branchInfo && branchInfo.value !== 'unknown' && ` · ${branchInfo.value}시생`}
@@ -226,6 +239,58 @@ export function ProfileScreen() {
             </motion.div>
           )}
 
+          {/* Premium Status Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            {isPremium ? (
+              <div className="bg-gradient-to-r from-gold/10 to-gold/5 rounded-2xl border border-gold/20 p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/20 flex items-center justify-center">
+                    <i className="fas fa-crown text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gold">프리미엄 활성화됨</p>
+                    <p className="text-[10px] text-lavender/50 mt-0.5">
+                      {daysRemaining > 0
+                        ? `남은 기간: ${daysRemaining}일`
+                        : '무제한'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[10px] px-2 py-1 rounded-full bg-gold/10 text-gold/80 border border-gold/20">
+                    <i className="fas fa-book-open text-[8px] mr-1" />심화 리딩
+                  </span>
+                  <span className="text-[10px] px-2 py-1 rounded-full bg-gold/10 text-gold/80 border border-gold/20">
+                    <i className="fas fa-calendar-alt text-[8px] mr-1" />30일 히스토리
+                  </span>
+                  <span className="text-[10px] px-2 py-1 rounded-full bg-gold/10 text-gold/80 border border-gold/20">
+                    <i className="fas fa-chart-line text-[8px] mr-1" />7일 미션
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowPremiumModal(true)}
+                className="w-full bg-white/5 rounded-2xl border border-white/5 p-5 text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
+                    <i className="fas fa-crown text-gold/60" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-ivory">프리미엄 업그레이드</p>
+                    <p className="text-[10px] text-lavender/50 mt-0.5">심화 리딩, 확장 히스토리 등 모든 기능 이용</p>
+                  </div>
+                  <i className="fas fa-chevron-right text-xs text-gold/40" />
+                </div>
+              </button>
+            )}
+          </motion.div>
+
           {/* Quick Links */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -271,6 +336,12 @@ export function ProfileScreen() {
         </main>
 
         <BottomTabBar />
+
+        {/* Premium Modal */}
+        <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+        />
       </div>
     </GradientBackground>
   );

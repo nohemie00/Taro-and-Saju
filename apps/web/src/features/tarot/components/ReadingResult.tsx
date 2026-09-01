@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CardImage } from './CardImage';
 import { DeepReadingModal } from './DeepReadingModal';
 import { ShareModal } from '@/shared/components/ShareModal';
+import { PremiumModal } from '@/shared/components/PremiumModal';
 import { generateTarotShareImage } from '@/shared/utils/shareImage';
 import { getCardImageUrl } from '@/data/cardImages';
 import { useDeepReading } from '../hooks/useTarot';
+import { usePremium } from '@/shared/hooks/usePremium';
 import type { DeepReadingResult } from '@/shared/api/endpoints';
 
 interface DrawnCard {
@@ -38,9 +40,11 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
   const [selectedCard, setSelectedCard] = useState<DrawnCard | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showDeepReading, setShowDeepReading] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [deepReadingData, setDeepReadingData] = useState<DeepReadingResult | null>(null);
   const [deepReadingError, setDeepReadingError] = useState<string | null>(null);
   const deepReadingMutation = useDeepReading();
+  const { isPremium } = usePremium();
 
   // Extract one keyword from each card
   const luckyKeywords = cards.map((c) => c.keywords[0]);
@@ -68,6 +72,11 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
   };
 
   const handleDeepReading = useCallback(async () => {
+    // 무료 유저: 프리미엄 모달 표시
+    if (!isPremium) {
+      setShowPremiumModal(true);
+      return;
+    }
     setShowDeepReading(true);
     setDeepReadingError(null);
     try {
@@ -80,7 +89,7 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
         : '네트워크 오류가 발생했어요';
       setDeepReadingError(message);
     }
-  }, [deepReadingMutation]);
+  }, [deepReadingMutation, isPremium]);
 
   return (
     <div className="flex flex-col items-center gap-6 px-4 pb-8">
@@ -178,8 +187,9 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
         </button>
         <button
           onClick={handleDeepReading}
-          className="flex-1 py-3 rounded-xl bg-gold/10 border border-gold/30 text-gold text-sm font-medium"
+          className="flex-1 py-3 rounded-xl bg-gold/10 border border-gold/30 text-gold text-sm font-medium relative"
         >
+          {!isPremium && <i className="fas fa-crown text-[10px] text-gold/60 mr-1" />}
           심화 리딩 받기
         </button>
       </div>
@@ -223,6 +233,13 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
         deepReading={deepReadingData}
         isLoading={deepReadingMutation.isPending}
         error={deepReadingError}
+      />
+
+      {/* Premium Gate Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        feature="deep_reading"
       />
     </div>
   );

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { calculateElements } from '../utils/saju';
 import { generateUUID } from '../utils/uuid';
 import { authMiddleware } from '../middleware/auth';
-import type { Element, BirthBranch, Gender } from '@osaekwoon/shared';
+import type { Element, BirthBranch, Gender, UserTier } from '@osaekwoon/shared';
 
 type Bindings = {
   DB: D1Database;
@@ -40,6 +40,15 @@ const updateUserSchema = z.object({
 
 // --- Helpers ---
 
+/** 프리미엄 만료 체크: 기간이 지났으면 'free'로 다운그레이드 */
+function resolvedTier(row: Record<string, unknown>): UserTier {
+  const tier = (row.tier as string) || 'free';
+  if (tier !== 'premium') return 'free';
+  const expiresAt = row.premium_expires_at as number | null;
+  if (expiresAt && Date.now() > expiresAt) return 'free';
+  return 'premium';
+}
+
 function userRowToResponse(row: Record<string, unknown>) {
   return {
     id: row.id as string,
@@ -56,6 +65,8 @@ function userRowToResponse(row: Record<string, unknown>) {
       water: row.element_water as number,
     },
     weakestElement: row.weakest_element as Element,
+    tier: resolvedTier(row),
+    premiumExpiresAt: (row.premium_expires_at as number) || null,
     createdAt: row.created_at as number,
     updatedAt: row.updated_at as number,
   };
@@ -116,6 +127,8 @@ usersRoute.post('/', async (c) => {
     gender: gender as Gender,
     elements,
     weakestElement,
+    tier: 'free' as UserTier,
+    premiumExpiresAt: null,
     createdAt: now,
     updatedAt: now,
   };
@@ -211,10 +224,11 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     gender: newGender as Gender,
     elements,
     weakestElement,
+    tier: resolvedTier(row),
+    premiumExpiresAt: (row.premium_expires_at as number) || null,
     createdAt: row.created_at as number,
     updatedAt: now,
   };
-
 
   return c.json({ user, elements, weakestElement });
 });

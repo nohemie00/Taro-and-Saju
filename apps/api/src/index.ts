@@ -5,6 +5,7 @@ import { usersRoute } from './routes/users';
 import { dailyFortuneRoute } from './routes/dailyFortune';
 import { tarotRoute } from './routes/tarot';
 import { missionsRoute } from './routes/missions';
+import { premiumRoute } from './routes/premium';
 
 type Bindings = {
   DB: D1Database;
@@ -27,7 +28,7 @@ app.use(
 
 // --- Health Check ---
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', version: '2.0.0', phase: 2 });
+  return c.json({ status: 'ok', version: '3.0.0', phase: 3 });
 });
 
 // --- Routes ---
@@ -35,6 +36,7 @@ app.route('/api/users', usersRoute);
 app.route('/api/daily-fortune', dailyFortuneRoute);
 app.route('/api/tarot', tarotRoute);
 app.route('/api/missions', missionsRoute);
+app.route('/api/premium', premiumRoute);
 
 // --- 404 Fallback ---
 app.notFound((c) => {

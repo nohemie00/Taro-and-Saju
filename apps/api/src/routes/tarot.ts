@@ -3,7 +3,8 @@ import { authMiddleware } from '../middleware/auth';
 import { drawThreeCards, generateReadingMessage } from '../utils/cardDraw';
 import { generateDeepReading } from '../utils/deepReading';
 // id is AUTOINCREMENT — no UUID needed for card_readings
-import type { Element } from '@osaekwoon/shared';
+import type { Element, UserTier } from '@osaekwoon/shared';
+import { TIER_LIMITS } from '@osaekwoon/shared';
 
 type Bindings = {
   DB: D1Database;
@@ -129,7 +130,7 @@ tarotRoute.post('/draw', authMiddleware, async (c) => {
   });
 });
 
-// --- GET /api/tarot/history --- 과거 리딩 조회
+// --- GET /api/tarot/history --- 과거 리딩 조회 (무료: 3일, 프리미엄: 30일)
 tarotRoute.get('/history', authMiddleware, async (c) => {
   const tossUserKey = c.get('tossUserKey');
 
@@ -143,10 +144,16 @@ tarotRoute.get('/history', authMiddleware, async (c) => {
     return c.json({ error: '사용자를 찾을 수 없습니다', code: 'NOT_FOUND' }, 404);
   }
 
+  // 티어에 따른 히스토리 제한
+  const tier = ((user.tier as string) || 'free') as UserTier;
+  const expiresAt = user.premium_expires_at as number | null;
+  const isPremium = tier === 'premium' && (!expiresAt || Date.now() <= expiresAt);
+  const limits = TIER_LIMITS[isPremium ? 'premium' : 'free'];
+
   const readings = await c.env.DB.prepare(
-    'SELECT * FROM card_readings WHERE user_id = ? ORDER BY date DESC LIMIT 30'
+    `SELECT * FROM card_readings WHERE user_id = ? ORDER BY date DESC LIMIT ?`
   )
-    .bind(user.id as string)
+    .bind(user.id as string, limits.tarotHistoryDays)
     .all();
 
   return c.json({
@@ -156,10 +163,12 @@ tarotRoute.get('/history', authMiddleware, async (c) => {
       readingText: r.reading_text as string,
       createdAt: r.created_at as number,
     })),
+    tier: isPremium ? 'premium' : 'free',
+    maxDays: limits.tarotHistoryDays,
   });
 });
 
-// --- POST /api/tarot/deep-reading --- 심화 리딩 (오행 분석 + 시너지)
+// --- POST /api/tarot/deep-reading --- 심화 리딩 (오행 분석 + 시너지) [프리미엄]
 tarotRoute.post('/deep-reading', authMiddleware, async (c) => {
   const tossUserKey = c.get('tossUserKey');
 
@@ -171,6 +180,20 @@ tarotRoute.post('/deep-reading', authMiddleware, async (c) => {
 
   if (!user) {
     return c.json({ error: '사용자를 찾을 수 없습니다', code: 'NOT_FOUND' }, 404);
+  }
+
+  // 프리미엄 체크
+  const tier = ((user.tier as string) || 'free') as UserTier;
+  const expiresAt = user.premium_expires_at as number | null;
+  const isPremium = tier === 'premium' && (!expiresAt || Date.now() <= expiresAt);
+  const limits = TIER_LIMITS[isPremium ? 'premium' : 'free'];
+
+  if (!limits.deepReadingEnabled) {
+    return c.json({
+      error: '심화 리딩은 프리미엄 기능입니다',
+      code: 'PREMIUM_REQUIRED',
+      feature: 'deep_reading',
+    }, 403);
   }
 
   const today = getTodayString();

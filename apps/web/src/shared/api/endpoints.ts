@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { User, DailyFortune, CreateUserRequest, UpdateUserRequest, DrawnCard, HistoryCard } from '@osaekwoon/shared';
+import type { User, DailyFortune, CreateUserRequest, UpdateUserRequest, DrawnCard, HistoryCard, UserTier } from '@osaekwoon/shared';
 
 // --- Users ---
 
@@ -159,4 +159,27 @@ export async function getDeepReading(): Promise<{
   deepReading: DeepReadingResult;
 }> {
   return api.post('tarot/deep-reading').json();
+}
+
+// --- Premium ---
+
+export interface PremiumStatus {
+  tier: UserTier;
+  isPremium: boolean;
+  expiresAt: number | null;
+  startedAt: number | null;
+}
+
+export async function getPremiumStatus(): Promise<PremiumStatus> {
+  return api.get('premium/status').json();
+}
+
+export async function activatePremium(promoCode: string): Promise<{
+  success: boolean;
+  tier: UserTier;
+  expiresAt: number;
+  durationDays: number;
+  message: string;
+}> {
+  return api.post('premium/activate', { json: { promoCode } }).json();
 }

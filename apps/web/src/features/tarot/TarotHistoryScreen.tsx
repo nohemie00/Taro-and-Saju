@@ -2,8 +2,10 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GradientBackground } from '@/shared/components/GradientBackground';
+import { PremiumModal } from '@/shared/components/PremiumModal';
 import { CardImage } from './components/CardImage';
 import { useTarotHistory } from './hooks/useTarot';
+import { usePremium } from '@/shared/hooks/usePremium';
 import type { HistoryCard } from '@osaekwoon/shared';
 
 // --- Calendar Utilities ---
@@ -39,6 +41,8 @@ const ELEMENT_DOT: Record<string, string> = {
 export function TarotHistoryScreen() {
   const navigate = useNavigate();
   const { data, isLoading } = useTarotHistory();
+  const { isPremium } = usePremium();
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -201,6 +205,23 @@ export function TarotHistoryScreen() {
               </div>
             </div>
 
+            {/* Premium upgrade banner */}
+            {!isPremium && (
+              <button
+                onClick={() => setShowPremiumModal(true)}
+                className="flex items-center gap-3 bg-gradient-to-r from-gold/10 to-gold/5 rounded-xl p-3 border border-gold/20 text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gold/20 flex items-center justify-center shrink-0">
+                  <i className="fas fa-crown text-gold text-xs" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-gold">최근 3일만 표시됩니다</p>
+                  <p className="text-[10px] text-lavender/50 mt-0.5">프리미엄으로 업그레이드하면 30일 히스토리를 볼 수 있어요</p>
+                </div>
+                <i className="fas fa-chevron-right text-xs text-gold/40" />
+              </button>
+            )}
+
             {/* Legend */}
             <div className="flex items-center justify-center gap-4 text-[10px] text-lavender/50">
               <span className="flex items-center gap-1">
@@ -253,6 +274,12 @@ export function TarotHistoryScreen() {
           </div>
         )}
       </div>
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        feature="tarot_history"
+      />
     </GradientBackground>
   );
 }

@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { getDailyMissions } from '../utils/dailyMission';
-import type { Element } from '@osaekwoon/shared';
+import type { Element, UserTier } from '@osaekwoon/shared';
+import { TIER_LIMITS } from '@osaekwoon/shared';
 
 type Bindings = { DB: D1Database };
 type Variables = { tossUserKey: string };
@@ -151,7 +152,7 @@ missionsRoute.post('/uncomplete', authMiddleware, async (c) => {
   return c.json({ success: true, missionId });
 });
 
-// --- GET /api/missions/history --- 최근 7일 미션 히스토리
+// --- GET /api/missions/history --- 미션 히스토리 (무료: 3일, 프리미엄: 7일)
 missionsRoute.get('/history', authMiddleware, async (c) => {
   const tossUserKey = c.get('tossUserKey');
 
@@ -168,9 +169,16 @@ missionsRoute.get('/history', authMiddleware, async (c) => {
   const userId = user.id as string;
   const weakestElement = user.weakest_element as Element;
 
-  // 최근 7일 날짜 목록
+  // 티어에 따른 히스토리 제한
+  const tier = ((user.tier as string) || 'free') as UserTier;
+  const expiresAt = user.premium_expires_at as number | null;
+  const isPremium = tier === 'premium' && (!expiresAt || Date.now() <= expiresAt);
+  const limits = TIER_LIMITS[isPremium ? 'premium' : 'free'];
+  const maxDays = limits.missionHistoryDays;
+
+  // 티어에 따른 날짜 목록
   const days: string[] = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < maxDays; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const y = d.getFullYear();
@@ -179,7 +187,7 @@ missionsRoute.get('/history', authMiddleware, async (c) => {
     days.push(`${y}-${m}-${dd}`);
   }
 
-  // 7일간 완료 기록 조회
+  // 완료 기록 조회
   const logs = await c.env.DB.prepare(
     `SELECT mission_id, date, completed_at FROM mission_logs
      WHERE user_id = ? AND date >= ?
@@ -212,7 +220,11 @@ missionsRoute.get('/history', authMiddleware, async (c) => {
     };
   });
 
-  return c.json({ history });
+  return c.json({
+    history,
+    tier: isPremium ? 'premium' : 'free',
+    maxDays,
+  });
 });
 
 export { missionsRoute };
