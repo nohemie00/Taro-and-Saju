@@ -246,6 +246,28 @@ export function ProfileScreen() {
               onClick={() => navigate('/onboarding?mode=edit')}
             />
           </motion.div>
+
+          {/* Legal Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex flex-col gap-2"
+          >
+            <p className="text-xs text-lavender/40 px-1 mb-1">약관 및 정책</p>
+            <QuickLink
+              icon="fas fa-shield-halved"
+              label="개인정보처리방침"
+              sub="개인정보 수집·이용·보호 안내"
+              onClick={() => navigate('/privacy')}
+            />
+            <QuickLink
+              icon="fas fa-file-contract"
+              label="이용약관"
+              sub="서비스 이용 규정"
+              onClick={() => navigate('/terms')}
+            />
+          </motion.div>
         </main>
 
         <BottomTabBar />
