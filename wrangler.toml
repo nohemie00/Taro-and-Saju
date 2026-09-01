@@ -1,0 +1,9 @@
+name = "osaekwoon"
+pages_build_output_dir = "./deploy"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "osaekwoon-db"
+database_id = "acd296cb-1dcc-4835-8ab6-e0b81a0e71c8"

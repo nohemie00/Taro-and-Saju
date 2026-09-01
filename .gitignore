@@ -10,3 +10,6 @@ dist/
 .turbo/
 *.tsbuildinfo
 package-lock.json
+
+# Deploy output
+deploy/
