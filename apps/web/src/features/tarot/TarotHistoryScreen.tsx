@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GradientBackground } from '@/shared/components/GradientBackground';
 import { CardImage } from './components/CardImage';
 import { useTarotHistory } from './hooks/useTarot';
+import type { HistoryCard } from '@osaekwoon/shared';
 
 // --- Calendar Utilities ---
 
@@ -186,7 +187,7 @@ export function TarotHistoryScreen() {
                       {/* Element dots for reading days */}
                       {hasReading && reading && (
                         <div className="flex gap-0.5 mt-0.5">
-                          {reading.cards.slice(0, 3).map((card: any, ci: number) => (
+                          {reading.cards.slice(0, 3).map((card: HistoryCard, ci: number) => (
                             <div
                               key={ci}
                               className={`w-1 h-1 rounded-full ${ELEMENT_DOT[card.element] || 'bg-ivory/30'}`}
@@ -257,7 +258,7 @@ export function TarotHistoryScreen() {
 }
 
 // --- Stats Bar ---
-function StatsBar({ readings }: { readings: any[] }) {
+function StatsBar({ readings }: { readings: Array<{ cards: HistoryCard[] }> }) {
   const totalReadings = readings.length;
   const elementCounts: Record<string, number> = {};
   for (const r of readings) {
@@ -296,7 +297,7 @@ function StatsBar({ readings }: { readings: any[] }) {
 }
 
 // --- Reading Card ---
-function ReadingCard({ reading }: { reading: { date: string; cards: any[]; readingText: string } }) {
+function ReadingCard({ reading }: { reading: { date: string; cards: HistoryCard[]; readingText: string } }) {
   const dateObj = new Date(reading.date + 'T00:00:00');
   const dateLabel = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${DAY_NAMES[dateObj.getDay()]})`;
 
@@ -310,7 +311,7 @@ function ReadingCard({ reading }: { reading: { date: string; cards: any[]; readi
 
       {/* Cards row */}
       <div className="flex items-start justify-center gap-3 px-4 py-4">
-        {reading.cards.map((card: any, i: number) => (
+        {reading.cards.map((card: HistoryCard, i: number) => (
           <div key={card.card_id + i} className="flex flex-col items-center gap-1.5">
             <span className="text-[9px] text-lavender/60 font-medium">
               [{card.positionLabel}]

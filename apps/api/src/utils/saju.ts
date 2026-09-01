@@ -90,7 +90,6 @@ export function calculateElements(
   birthDate: string,
   birthTime: string
 ): { elements: Record<Element, number>; weakestElement: Element } {
-  console.log('[SAJU] 입력:', { birthDate, birthTime });
 
   const date = new Date(birthDate + 'T00:00:00');
   const year = date.getFullYear();
@@ -108,16 +107,6 @@ export function calculateElements(
   // --- 일주(日柱) ---
   const { stem: dayStem, branch: dayBranch } = getDayStemBranch(year, month, day);
 
-  console.log('[SAJU] 천간 인덱스:', {
-    yearStem: `${yearStem}(${STEM_TO_ELEMENT[yearStem]})`,
-    monthStem: `${monthStem}(${STEM_TO_ELEMENT[monthStem]})`,
-    dayStem: `${dayStem}(${STEM_TO_ELEMENT[dayStem]})`,
-  });
-  console.log('[SAJU] 지지 인덱스:', {
-    yearBranch: `${yearBranch}(${BRANCH_TO_ELEMENT[yearBranch]})`,
-    monthBranch: `${monthBranch}(${BRANCH_TO_ELEMENT[monthBranch]})`,
-    dayBranch: `${dayBranch}(${BRANCH_TO_ELEMENT[dayBranch]})`,
-  });
 
   // 가중치 부여된 점수 (float)
   const raw: Record<Element, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
@@ -141,12 +130,6 @@ export function calculateElements(
       // 시주 천간: 일간(日干)에 따라 결정
       // 공식: ((dayStem % 5) * 2 + timeIndex) % 10
       const timeStem = ((dayStem % 5) * 2 + timeIndex) % 10;
-      console.log('[SAJU] 시주:', {
-        timeIndex,
-        timeStem: `${timeStem}(${STEM_TO_ELEMENT[timeStem]})`,
-        timeBranch: `${timeIndex}(${BRANCH_TO_ELEMENT[timeIndex]})`,
-      });
-
       // 시주: 가중치 1
       raw[STEM_TO_ELEMENT[timeStem]] += 1;
       raw[BRANCH_TO_ELEMENT[timeIndex]] += 1;
@@ -162,7 +145,6 @@ export function calculateElements(
     water: Math.round(raw.water),
   };
 
-  console.log('[SAJU] 오행 점수:', elements);
 
   // 명시적 키 순서로 정렬 (객체 키 순서 의존 제거)
   const entries: [Element, number][] = [
@@ -177,8 +159,6 @@ export function calculateElements(
   entries.sort((a, b) => a[1] - b[1]);
   const weakest = entries[0][0] as Element;
 
-  console.log('[SAJU] 정렬 결과:', entries.map(([k, v]) => `${k}=${v}`).join(', '));
-  console.log('[SAJU] 가장 약한 오행:', weakest);
 
   return { elements, weakestElement: weakest };
 }

@@ -62,3 +62,46 @@ export interface CreateUserResponse {
   weakestElement: Element;
   elements: Record<Element, number>;
 }
+
+// ─── 카드 (Tarot Card) ───
+
+export type CardCategory = 'major' | 'element' | 'zodiac' | 'protection' | 'luck';
+export type CardOrientation = 'upright' | 'reversed';
+
+/** cards.json에 정의된 카드 원본 데이터 */
+export interface CardData {
+  card_id: string;
+  name_kr: string;
+  name_hanja: string;
+  category: CardCategory;
+  element: Element;
+  yin_yang?: 'yin' | 'yang';
+  state?: string;              // Element 카드의 상태 (wang/sang/hyu/su)
+  color_hex: string;
+  color_name?: string;
+  keywords: string[];
+  meaning_upright: string;
+  meaning_reversed: string;
+  saju_hint: string;
+  is_holographic: boolean;
+  draw_weight: number;
+}
+
+/** API에서 반환하는 드로우된 카드 (position 정보 포함) */
+export interface DrawnCard extends CardData {
+  orientation: CardOrientation;
+  position: string;            // 'past' | 'present' | 'future'
+  positionLabel: string;       // '과거' | '현재' | '미래'
+}
+
+/** 타로 히스토리에서 사용하는 간략 카드 */
+export interface HistoryCard {
+  card_id: string;
+  name_kr: string;
+  element: Element;
+  orientation: CardOrientation;
+  position: string;
+  positionLabel: string;
+  color_hex: string;
+  keywords: string[];
+}

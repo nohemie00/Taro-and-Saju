@@ -72,15 +72,6 @@ export function getDailyColor(
   const finalSat = Math.max(5, Math.min(100, base.sat + texture.satMod));
   const finalHex = hslToHex(base.hue, finalSat, tone.lightness);
 
-  console.log('[COLOR]', {
-    weakestElement,
-    birthMonth,
-    dateString,
-    tone: tone.name,
-    texture: texture.name,
-    hex: finalHex,
-  });
-
   return {
     colorName: `${tone.name} ${texture.name} ${base.name}`,
     colorHex: finalHex,

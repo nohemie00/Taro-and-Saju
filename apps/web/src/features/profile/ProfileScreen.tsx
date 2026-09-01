@@ -5,7 +5,7 @@ import { BottomTabBar } from '@/features/home/components/BottomTabBar';
 import { useUserStore } from '@/shared/stores/userStore';
 import { useTarotHistory } from '@/features/tarot/hooks/useTarot';
 import { useMissionHistory } from '@/features/mission/hooks/useMission';
-import type { Element } from '@osaekwoon/shared';
+import type { Element, HistoryCard } from '@osaekwoon/shared';
 import { ELEMENT_COLORS, BIRTH_BRANCHES, GENDER_OPTIONS } from '@osaekwoon/shared';
 
 // --- Constants ---
@@ -307,7 +307,7 @@ function QuickLink({
 function CardElementStats({
   readings,
 }: {
-  readings: Array<{ cards: any[] }>;
+  readings: Array<{ cards: HistoryCard[] }>;
 }) {
   const counts: Record<string, number> = {};
   let total = 0;

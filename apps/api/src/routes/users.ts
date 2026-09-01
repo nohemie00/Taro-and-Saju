@@ -170,13 +170,6 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
   const newBirthTime = updates.birthTime ?? (row.birth_time as string);
   const newGender = updates.gender ?? (row.gender as string);
 
-  console.log('[PATCH /users/me] 요청 body:', updates);
-  console.log('[PATCH /users/me] 기존값:', {
-    birthDate: row.birth_date,
-    birthTime: row.birth_time,
-    weakestElement: row.weakest_element,
-  });
-
   // 사주 정보 변경 여부 확인
   const sajuChanged =
     newBirthDate !== (row.birth_date as string) ||
@@ -185,13 +178,6 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
   // 오행 재계산 (사주 변경 여부와 관계없이 항상 계산하여 일관성 보장)
   const { elements, weakestElement } = calculateElements(newBirthDate, newBirthTime);
   const now = Date.now();
-
-  console.log(`[PATCH /users/me] 사주 재계산 결과: weakestElement = ${weakestElement}`, {
-    birthDate: newBirthDate,
-    birthTime: newBirthTime,
-    elements,
-    sajuChanged,
-  });
 
   // users 테이블 업데이트
   await c.env.DB.prepare(
@@ -216,11 +202,6 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     .bind(userId, today)
     .run();
 
-  console.log(`[PATCH /users/me] 오늘(${today}) 캐시 무효화 완료`, {
-    userId,
-    rowsDeleted: deleteResult.meta.changes,
-  });
-
   const user = {
     id: userId,
     tossUserKey,
@@ -234,13 +215,6 @@ usersRoute.patch('/me', authMiddleware, async (c) => {
     updatedAt: now,
   };
 
-  console.log('[PATCH /users/me] 업데이트 후 user:', {
-    nickname: user.nickname,
-    birthDate: user.birthDate,
-    birthTime: user.birthTime,
-    weakestElement: user.weakestElement,
-    elements: user.elements,
-  });
 
   return c.json({ user, elements, weakestElement });
 });

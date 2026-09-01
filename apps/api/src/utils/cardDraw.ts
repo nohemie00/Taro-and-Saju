@@ -111,12 +111,6 @@ export function drawThreeCards(weakestElement: Element, birthYear: number): Draw
     positionLabel: positions[i].label,
   }));
 
-  console.log('[TAROT]', {
-    weakestElement,
-    userZodiac,
-    drawn: result.map((c) => `${c.card_id}(${c.orientation})`),
-  });
-
   return result;
 }
 

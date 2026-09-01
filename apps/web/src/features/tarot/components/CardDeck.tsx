@@ -36,7 +36,7 @@ export function CardDeck({ onSelectionComplete }: Props) {
 
   // swipe handler for rotating the deck
   const handleDrag = useCallback(
-    (_: any, info: { offset: { x: number } }) => {
+    (_: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number } }) => {
       setDeckOffset((prev) =>
         Math.max(-200, Math.min(200, prev + info.offset.x * 0.15))
       );

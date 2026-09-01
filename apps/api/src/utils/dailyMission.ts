@@ -46,12 +46,6 @@ export function getDailyMissions(
   );
   const third = thirdPool[(seed * 13) % thirdPool.length];
 
-  console.log('[MISSION]', {
-    weakestElement,
-    dateString,
-    selected: [first.mission_id, second.mission_id, third.mission_id],
-  });
-
   return [first, second, third];
 }
 

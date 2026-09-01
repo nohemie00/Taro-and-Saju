@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { User, DailyFortune, CreateUserRequest, UpdateUserRequest } from '@osaekwoon/shared';
+import type { User, DailyFortune, CreateUserRequest, UpdateUserRequest, DrawnCard, HistoryCard } from '@osaekwoon/shared';
 
 // --- Users ---
 
@@ -40,7 +40,7 @@ export async function getTarotStatus(): Promise<{
   hasReadToday: boolean;
   todayReading: {
     date: string;
-    cards: any[];
+    cards: DrawnCard[];
     readingText: string;
     createdAt: number;
   } | null;
@@ -50,7 +50,7 @@ export async function getTarotStatus(): Promise<{
 
 export async function drawTarotCards(): Promise<{
   date: string;
-  cards: any[];
+  cards: DrawnCard[];
   readingMessage: string;
   nickname: string;
 }> {
@@ -115,7 +115,7 @@ export async function getMissionHistory(): Promise<{
 export async function getTarotHistory(): Promise<{
   readings: Array<{
     date: string;
-    cards: any[];
+    cards: HistoryCard[];
     readingText: string;
     createdAt: number;
   }>;
@@ -155,7 +155,7 @@ export interface DeepReadingResult {
 
 export async function getDeepReading(): Promise<{
   date: string;
-  cards: any[];
+  cards: DrawnCard[];
   deepReading: DeepReadingResult;
 }> {
   return api.post('tarot/deep-reading').json();

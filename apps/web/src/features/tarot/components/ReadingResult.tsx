@@ -73,9 +73,10 @@ export function ReadingResult({ cards, readingMessage, nickname, date }: Props) 
     try {
       const result = await deepReadingMutation.mutateAsync();
       setDeepReadingData(result.deepReading);
-    } catch (err: any) {
-      const message = err?.response
-        ? (await err.response.json().catch(() => ({}))).error || '심화 리딩을 불러오지 못했어요'
+    } catch (err) {
+      const httpErr = err as { response?: { json: () => Promise<Record<string, string>> } };
+      const message = httpErr?.response
+        ? (await httpErr.response.json().catch(() => ({} as Record<string, string>))).error || '심화 리딩을 불러오지 못했어요'
         : '네트워크 오류가 발생했어요';
       setDeepReadingError(message);
     }

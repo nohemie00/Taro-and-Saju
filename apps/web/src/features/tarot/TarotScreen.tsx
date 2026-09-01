@@ -7,6 +7,7 @@ import { CardDrawAnimation } from './components/CardDrawAnimation';
 import { ReadingResult } from './components/ReadingResult';
 import { useTarotStatus, useDrawCards } from './hooks/useTarot';
 import { useUserStore } from '@/shared/stores/userStore';
+import type { DrawnCard } from '@osaekwoon/shared';
 
 type Phase = 'loading' | 'intro' | 'drawing' | 'result';
 
@@ -18,7 +19,7 @@ export function TarotScreen() {
 
   const [phase, setPhase] = useState<Phase>('loading');
   const [drawResult, setDrawResult] = useState<{
-    cards: any[];
+    cards: DrawnCard[];
     readingMessage: string;
     nickname: string;
     date: string;
@@ -40,10 +41,11 @@ export function TarotScreen() {
       try {
         const result = await drawMutation.mutateAsync();
         setDrawResult(result);
-      } catch (err: any) {
+      } catch (err) {
         // If already read today (409), show existing result
-        if (err?.response?.status === 409) {
-          const body = await err.response.json();
+        const httpErr = err as { response?: { status: number; json: () => Promise<Record<string, unknown>> } };
+        if (httpErr.response?.status === 409) {
+          const body = await httpErr.response.json() as Record<string, any>;
           if (body.existing) {
             setDrawResult({
               cards: body.existing.cards,

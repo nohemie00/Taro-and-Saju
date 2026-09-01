@@ -7,7 +7,7 @@ import { useUserStore } from '@/shared/stores/userStore';
 import { tossUserKey } from '@/shared/api/client';
 import { showToast } from '@/shared/components/Toast';
 import { ELEMENT_COLORS } from '@osaekwoon/shared';
-import type { Element } from '@osaekwoon/shared';
+import type { Element, User } from '@osaekwoon/shared';
 
 interface Props {
   isEditMode?: boolean;
@@ -38,7 +38,7 @@ export function CompleteStep({ isEditMode = false }: Props) {
     setError(false);
 
     try {
-      let res: { user: any; weakestElement: string; elements: Record<string, number> };
+      let res: { user: User; weakestElement: string; elements: Record<string, number> };
 
       if (isEditMode) {
         // 수정 모드: PATCH /api/users/me
