@@ -55,7 +55,10 @@ export function ProfileScreen() {
 
   // Stats
   const totalReadings = tarotHistory?.readings?.length ?? 0;
-  const totalMissionDays = missionHistory?.history?.length ?? 0;
+  // 조회 기간(history.length)이 아니라 실제로 미션을 1개 이상 완료한 날만 센다
+  const totalMissionDays = (missionHistory?.history ?? []).filter(
+    (d) => d.completedCount > 0
+  ).length;
   const totalMissionsCompleted = (missionHistory?.history ?? []).reduce(
     (sum, d) => sum + d.completedCount,
     0
