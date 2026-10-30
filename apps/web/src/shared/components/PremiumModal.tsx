@@ -74,15 +74,18 @@ export function PremiumModal({ isOpen, onClose, feature }: PremiumModalProps) {
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Modal */}
+          {/* Modal — flex 래퍼로 중앙 정렬 (framer-motion transform과 충돌하지 않도록 translate 미사용) */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <motion.div
+            role="dialog"
+            aria-modal="true"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-sm"
+            className="w-full max-w-sm pointer-events-auto"
           >
-            <div className="bg-gradient-to-b from-[#1a1a2e] to-[#16213e] rounded-2xl border border-gold/20 overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-b from-[#1a1a2e] to-[#16213e] rounded-2xl border border-gold/20 overflow-y-auto max-h-[calc(100dvh-2rem)] shadow-2xl">
               {/* Header glow */}
               <div className="relative px-6 pt-8 pb-4 text-center">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-gold/10 rounded-full blur-3xl" />
@@ -150,6 +153,7 @@ export function PremiumModal({ isOpen, onClose, feature }: PremiumModalProps) {
               </div>
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

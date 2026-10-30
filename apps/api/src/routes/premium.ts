@@ -1,7 +1,27 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 
-type Bindings = { DB: D1Database };
+type Bindings = {
+  DB: D1Database;
+  /** Cloudflare secret. 형식: "CODE1:30,CODE2:7" (코드:부여일수, 쉼표 구분) */
+  PROMO_CODES?: string;
+};
+
+const MAX_PROMO_DAYS = 365;
+
+/** PROMO_CODES secret 파싱 → { CODE: days }. 잘못된 항목은 무시. */
+function parsePromoCodes(raw: string | undefined): Record<string, number> {
+  const result: Record<string, number> = {};
+  if (!raw) return result;
+  for (const entry of raw.split(',')) {
+    const [code, days] = entry.split(':').map((v) => v?.trim());
+    const n = Number(days);
+    if (code && Number.isInteger(n) && n > 0 && n <= MAX_PROMO_DAYS) {
+      result[code.toUpperCase()] = n;
+    }
+  }
+  return result;
+}
 type Variables = { tossUserKey: string };
 
 const premiumRoute = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -35,33 +55,38 @@ premiumRoute.get('/status', authMiddleware, async (c) => {
 });
 
 /**
- * POST /api/premium/activate — 프리미엄 활성화
- * 
- * 현재는 결제 연동 전이므로, 프로모션/쿠폰 방식으로 활성화.
- * 향후 토스 결제 API 연동 시 이 엔드포인트를 확장.
- * 
- * Body: { durationDays: number, promoCode?: string }
+ * POST /api/premium/activate — 프로모 코드로 프리미엄 활성화
+ *
+ * 결제 연동 전이므로 **프로모 코드로만** 활성화한다.
+ * 코드 목록은 Cloudflare secret `PROMO_CODES`에서 읽는다 (코드/Git에 하드코딩 금지).
+ * 향후 토스 결제 연동 시 서버 측 결제 검증을 거친 별도 경로로 확장.
+ *
+ * Body: { promoCode: string }
  */
 premiumRoute.post('/activate', authMiddleware, async (c) => {
   const tossUserKey = c.get('tossUserKey');
-  const body = await c.req.json();
-  const durationDays = (body.durationDays as number) || 30;
-  const promoCode = body.promoCode as string | undefined;
 
-  // 프로모 코드 검증 (향후 확장 가능)
-  const validPromoCodes: Record<string, number> = {
-    'OSAEKWOON2026': 30,    // 30일 무료 체험
-    'PREMIUM7': 7,           // 7일 체험
-    'PREMIUM30': 30,         // 30일
-  };
+  let body: { promoCode?: unknown };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: '잘못된 요청입니다', code: 'INVALID_BODY' }, 400);
+  }
 
-  let grantDays = 0;
-  if (promoCode && validPromoCodes[promoCode]) {
-    grantDays = validPromoCodes[promoCode];
-  } else if (!promoCode) {
-    // 프로모 코드 없이 직접 활성화 (향후 결제 연동)
-    grantDays = durationDays;
-  } else {
+  const promoCode =
+    typeof body.promoCode === 'string' ? body.promoCode.trim().toUpperCase() : '';
+
+  // 결제 연동 전: 프로모 코드 없는 활성화(durationDays 직접 지정 등)는 전부 거부
+  if (!promoCode) {
+    return c.json(
+      { error: '프로모 코드가 필요합니다', code: 'PROMO_REQUIRED' },
+      400
+    );
+  }
+
+  const validPromoCodes = parsePromoCodes(c.env.PROMO_CODES);
+  const grantDays = validPromoCodes[promoCode];
+  if (!grantDays) {
     return c.json({ error: '유효하지 않은 프로모 코드입니다', code: 'INVALID_PROMO' }, 400);
   }
 

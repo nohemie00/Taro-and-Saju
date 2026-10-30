@@ -178,8 +178,7 @@ export async function activatePremium(promoCode: string): Promise<{
   success: boolean;
   tier: UserTier;
   expiresAt: number;
-  durationDays: number;
-  message: string;
+  grantedDays: number;
 }> {
   return api.post('premium/activate', { json: { promoCode } }).json();
 }
